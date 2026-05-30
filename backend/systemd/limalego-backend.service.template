@@ -1,0 +1,17 @@
+[Unit]
+Description=Limalego FastAPI backend
+After=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+Group=__USER__
+WorkingDirectory=__APP_ROOT__/backend
+ExecStart=__APP_ROOT__/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

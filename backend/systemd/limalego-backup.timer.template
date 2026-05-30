@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Limalego progress backup
+
+[Timer]
+OnCalendar=*-*-* 02:30:00
+Persistent=true
+Unit=limalego-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+
+# Data & DB
+backend/db/*.db
+backend/db/*.db-journal
+backend/db/*.db-wal
+backend/db/*.db-shm
+data/*.csv
+data/*.csv.gz
+uploads/
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# User progress backups
+backups/
+
+# Logs
+*.log
+
+# Claude Code config
+.claude/
+
+# Local systemd files with hardcoded user/paths (only .template is committed)
+backend/systemd/*.service
+backend/systemd/*.timer
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

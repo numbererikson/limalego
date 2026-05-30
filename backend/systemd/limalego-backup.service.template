@@ -1,0 +1,12 @@
+[Unit]
+Description=Limalego daily progress backup
+Requires=limalego-backend.service
+
+[Service]
+Type=oneshot
+User=__USER__
+Group=__USER__
+WorkingDirectory=__APP_ROOT__
+ExecStart=__APP_ROOT__/.venv/bin/python backend/scripts/backup_progress.py
+StandardOutput=journal
+StandardError=journal
