@@ -16,7 +16,11 @@
     },
     "android": {
       "package": "com.limalego.app",
-      "permissions": ["CAMERA"]
+      "permissions": [
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-secure-store",
@@ -26,6 +30,11 @@
           "cameraPermission": "Limalego uses the camera to recognise LEGO parts."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3da18395-ae33-4c9d-bc10-38ab28f94e2b"
+      }
+    }
   }
 }
