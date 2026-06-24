@@ -11,6 +11,11 @@ local database on the device, and each set's parts list is pulled live from the
 [Rebrickable](https://rebrickable.com/) API when you add it. Part recognition
 uses the public [Brickognize](https://brickognize.com/) API.
 
+**Privacy:** no accounts, no analytics, no backend of ours. Your tracked sets
+and progress never leave your device. You bring your own free Rebrickable API
+key (stored in the device's secure storage); the app only talks to Rebrickable
+and Brickognize directly to fetch part data and recognise photos.
+
 > Built with Expo / React Native. The earlier self-hosted web version
 > (FastAPI + React) lived under `backend/` and `frontend/` and remains in the
 > git history.
