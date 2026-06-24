@@ -73,11 +73,17 @@ export async function getSet(setNum: string): Promise<RbSet> {
   return getJson<RbSet>(`${BASE}/sets/${encodeURIComponent(setNum)}/`);
 }
 
-/** Resolve a theme id to its display name (best-effort). */
+/** Resolve a theme id to its ROOT theme name (e.g. "Hospital" -> "City"),
+ *  matching the web app which flattens sub-themes to their root. */
 export async function getThemeName(themeId: number | null): Promise<string | null> {
   if (themeId == null) return null;
   try {
-    const theme = await getJson<RbTheme>(`${BASE}/themes/${themeId}/`);
+    let theme = await getJson<RbTheme>(`${BASE}/themes/${themeId}/`);
+    let guard = 0;
+    while (theme.parent_id != null && guard < 10) {
+      theme = await getJson<RbTheme>(`${BASE}/themes/${theme.parent_id}/`);
+      guard++;
+    }
     return theme.name;
   } catch {
     return null;

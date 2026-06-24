@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
@@ -12,6 +12,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  type ImageStyle,
+  type StyleProp,
+  type ViewStyle,
 } from "react-native";
 
 import { mySets, removeSet, setStatus } from "@/data/sets";
@@ -21,6 +24,20 @@ import type { RootStackParamList } from "@/navigation";
 import { theme } from "@/theme";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
+
+/** Remote image that falls back to a 🧱 placeholder if the URL fails to load. */
+function RemoteThumb({ uri, style }: { uri: string | null; style: StyleProp<ImageStyle> }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [uri]);
+  if (!uri || failed) {
+    return (
+      <View style={[style as StyleProp<ViewStyle>, { alignItems: "center", justifyContent: "center" }]}>
+        <Text style={{ fontSize: 22, opacity: 0.3 }}>🧱</Text>
+      </View>
+    );
+  }
+  return <Image source={{ uri }} style={style} resizeMode="contain" onError={() => setFailed(true)} />;
+}
 
 function statusLabel(s: string) {
   return (
@@ -133,11 +150,7 @@ export default function HomeScreen() {
                   style={styles.rowMain}
                   onPress={() => nav.navigate("SetDetail", { setNum: s.set_num })}
                 >
-                  {s.img_url ? (
-                    <Image source={{ uri: s.img_url }} style={styles.thumb} resizeMode="contain" />
-                  ) : (
-                    <View style={styles.thumb} />
-                  )}
+                  <RemoteThumb uri={s.img_url} style={styles.thumb} />
                   <View style={styles.rowBody}>
                     <Text style={styles.setName} numberOfLines={2}>
                       {s.name}
@@ -252,7 +265,7 @@ function StatsFooter({ stats, nav }: { stats: Stats; nav: Nav }) {
                 style={styles.closeRow}
                 onPress={() => nav.navigate("SetDetail", { setNum: s.set_num })}
               >
-                {s.img_url ? <Image source={{ uri: s.img_url }} style={styles.closeThumb} resizeMode="contain" /> : null}
+                <RemoteThumb uri={s.img_url} style={styles.closeThumb} />
                 <Text style={styles.closeName} numberOfLines={1}>
                   {s.name}
                 </Text>
