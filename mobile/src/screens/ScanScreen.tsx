@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRoute, type RouteProp } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import {
   ActivityIndicator,
@@ -13,9 +14,12 @@ import {
 import PartThumb from "@/components/PartThumb";
 import { feedback, scan } from "@/data/scan";
 import type { Detection, ScanResult } from "@/data/types";
+import type { TabsParamList } from "@/navigation";
 import { theme, textOn } from "@/theme";
 
 export default function ScanScreen() {
+  const route = useRoute<RouteProp<TabsParamList, "Scan">>();
+  const activeSet = route.params?.setNum ?? null;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -43,7 +47,7 @@ export default function ScanScreen() {
     setTaken(new Set());
     setBusy(true);
     try {
-      setResult(await scan(uri, null, "single"));
+      setResult(await scan(uri, activeSet, "single"));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Scan failed.");
     } finally {

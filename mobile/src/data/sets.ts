@@ -129,10 +129,21 @@ export async function setStatus(
   await run("UPDATE sets SET status = ? WHERE set_num = ?", [status, setNum]);
 }
 
-/** Remove a set and all its local inventory rows. */
-export async function removeSet(setNum: string): Promise<void> {
+/**
+ * Remove a set from "my sets". Mirrors the web app: the set + inventory rows
+ * are kept (status flips to 'catalog'), so progress survives if you re-add it
+ * later. With resetProgress, confirmed quantities are also zeroed.
+ */
+export async function removeSet(setNum: string, resetProgress = false): Promise<void> {
   await tx(async () => {
-    await run("DELETE FROM set_inventory WHERE set_num = ?", [setNum]);
-    await run("DELETE FROM sets WHERE set_num = ?", [setNum]);
+    await run("UPDATE sets SET status = 'catalog' WHERE set_num = ?", [setNum]);
+    if (resetProgress) {
+      await run(
+        `UPDATE set_inventory
+            SET confirmed_qty = 0, missing_qty = required_qty
+          WHERE set_num = ?`,
+        [setNum],
+      );
+    }
   });
 }
