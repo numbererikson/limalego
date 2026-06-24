@@ -22,7 +22,7 @@ export async function mySets(): Promise<SetRow[]> {
     `SELECT set_num, name, year, theme, total_parts, status, img_url
        FROM sets
       WHERE status IN (${placeholders})
-      ORDER BY status, theme, year DESC, name`,
+      ORDER BY theme, year DESC, name`,
     [...MY_STATUSES],
   );
 }

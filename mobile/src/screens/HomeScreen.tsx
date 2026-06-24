@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Image } from "expo-image";
 import {
-  Image,
   Modal,
   Pressable,
   RefreshControl,
@@ -36,7 +36,7 @@ function Thumb({ uri, size }: { uri: string | null; size: number }) {
       </View>
     );
   }
-  return <Image source={{ uri }} style={base} resizeMode="contain" />;
+  return <Image source={uri} style={base} contentFit="contain" />;
 }
 
 export default function HomeScreen() {
