@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  type ImageStyle,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { theme } from "@/theme";
 
@@ -8,7 +16,7 @@ type Props = {
   colorId: number;
   src?: string | null;
   elementId?: string | null;
-  style?: ViewStyle;
+  style?: StyleProp<ImageStyle>;
 };
 
 /**
@@ -29,7 +37,7 @@ export default function PartThumb({ partNum, colorId, src, elementId, style }: P
 
   if (idx >= candidates.length) {
     return (
-      <View style={[styles.base, styles.placeholder, style]}>
+      <View style={[styles.base, styles.placeholder, style as StyleProp<ViewStyle>]}>
         <Text style={styles.emoji}>🧱</Text>
       </View>
     );
