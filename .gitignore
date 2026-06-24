@@ -2,11 +2,11 @@
 node_modules/
 
 # Expo / React Native
-mobile/.expo/
-mobile/dist/
-mobile/web-build/
-mobile/ios/
-mobile/android/
+.expo/
+dist/
+web-build/
+/ios
+/android
 
 # Logs
 *.log

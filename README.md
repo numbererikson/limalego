@@ -54,7 +54,6 @@ and Brickognize directly to fetch part data and recognise photos.
 ## Run it (development)
 
 ```bash
-cd mobile
 npm install
 npx expo start
 ```
@@ -78,17 +77,17 @@ eas build -p ios            # iOS (needs an Apple Developer account to install)
 ## Project layout
 
 ```
-limalego/
-├── mobile/                  Expo / React Native app
-│   ├── App.tsx              navigation (tabs + set-detail stack)
-│   └── src/
-│       ├── api/             rebrickable.ts, brickognize.ts  (network clients)
-│       ├── db/              schema.ts, database.ts          (expo-sqlite)
-│       ├── store/           settings.ts                     (secure-store: API key)
-│       ├── data/            sets / inventory / scan / stats  (app logic)
-│       ├── components/      PartThumb.tsx
-│       └── screens/         Home, SetSearch, SetDetail, Scan, Settings
-└── LICENSE
+limalego/                    Expo / React Native app (project root)
+├── App.tsx                  navigation (tabs + set-detail stack)
+├── app.json                 Expo config
+├── eas.json                 EAS build profiles
+└── src/
+    ├── api/                 rebrickable.ts, brickognize.ts  (network clients)
+    ├── db/                  schema.ts, database.ts          (expo-sqlite)
+    ├── store/               settings.ts                     (secure-store: API key)
+    ├── data/                sets / inventory / scan / stats  (app logic)
+    ├── components/          PartThumb.tsx
+    └── screens/             Home, SetSearch, SetDetail, Scan, Settings
 ```
 
 ## Credits
