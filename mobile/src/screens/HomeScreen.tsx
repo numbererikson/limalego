@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
-  FlatList,
   Image,
   Modal,
   Pressable,
@@ -12,9 +11,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  type ImageStyle,
-  type StyleProp,
-  type ViewStyle,
 } from "react-native";
 
 import { mySets, removeSet, setStatus } from "@/data/sets";
@@ -25,24 +21,22 @@ import { theme } from "@/theme";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-/** Remote image that falls back to a 🧱 placeholder if the URL fails to load. */
-function RemoteThumb({ uri, style }: { uri: string | null; style: StyleProp<ImageStyle> }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [uri]);
-  if (!uri || failed) {
-    return (
-      <View style={[style as StyleProp<ViewStyle>, { alignItems: "center", justifyContent: "center" }]}>
-        <Text style={{ fontSize: 22, opacity: 0.3 }}>🧱</Text>
-      </View>
-    );
-  }
-  return <Image source={{ uri }} style={style} resizeMode="contain" onError={() => setFailed(true)} />;
-}
-
 function statusLabel(s: string) {
   return (
     { tracked: "tracking", building: "★ building", complete: "✓ done", archived: "archived", catalog: "catalog" } as Record<string, string>
   )[s] ?? s;
+}
+
+function Thumb({ uri, size }: { uri: string | null; size: number }) {
+  const base = { width: size, height: size, borderRadius: 8, backgroundColor: theme.cardAlt };
+  if (!uri) {
+    return (
+      <View style={[base, { alignItems: "center", justifyContent: "center" }]}>
+        <Text style={{ fontSize: size / 3, opacity: 0.3 }}>🧱</Text>
+      </View>
+    );
+  }
+  return <Image source={{ uri }} style={base} resizeMode="contain" />;
 }
 
 export default function HomeScreen() {
@@ -70,7 +64,6 @@ export default function HomeScreen() {
     }, [load]),
   );
 
-  // Theme counts for the filter chip row.
   const themes = useMemo(() => {
     const counts = new Map<string, number>();
     sets.forEach((s) => {
@@ -82,7 +75,6 @@ export default function HomeScreen() {
 
   const filtered = themeFilter ? sets.filter((s) => (s.theme ?? "—") === themeFilter) : sets;
 
-  // Sets grouped by theme (only when no single-theme filter is active).
   const groups = useMemo(() => {
     if (themeFilter) return [{ theme: themeFilter, items: filtered }];
     const m = new Map<string, SetRow[]>();
@@ -109,36 +101,33 @@ export default function HomeScreen() {
 
   return (
     <>
-      <FlatList
+      <ScrollView
         style={styles.screen}
         contentContainerStyle={styles.content}
-        data={groups}
-        keyExtractor={(g) => g.theme}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={theme.accent} />}
-        ListHeaderComponent={
-          themes.length > 1 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-              <Chip label={`All · ${sets.length}`} active={themeFilter === null} onClick={() => setThemeFilter(null)} />
-              {themes.map(([t, n]) => (
-                <Chip
-                  key={t}
-                  label={`${t} · ${n}`}
-                  active={themeFilter === t}
-                  onClick={() => setThemeFilter((cur) => (cur === t ? null : t))}
-                />
-              ))}
-            </ScrollView>
-          ) : null
-        }
-        ListEmptyComponent={
-          !loading ? (
-            <Text style={styles.empty}>
-              No sets yet. Use the Find tab to add one. (Set your Rebrickable key in Settings first.)
-            </Text>
-          ) : null
-        }
-        renderItem={({ item: g }) => (
-          <View style={styles.section}>
+      >
+        {themes.length > 1 && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+            <Chip label={`All · ${sets.length}`} active={themeFilter === null} onClick={() => setThemeFilter(null)} />
+            {themes.map(([t, n]) => (
+              <Chip
+                key={t}
+                label={`${t} · ${n}`}
+                active={themeFilter === t}
+                onClick={() => setThemeFilter((cur) => (cur === t ? null : t))}
+              />
+            ))}
+          </ScrollView>
+        )}
+
+        {!loading && sets.length === 0 && (
+          <Text style={styles.empty}>
+            No sets yet. Use the Find tab to add one. (Set your Rebrickable key in Settings first.)
+          </Text>
+        )}
+
+        {groups.map((g) => (
+          <View key={g.theme} style={styles.section}>
             {!themeFilter && (
               <Text style={styles.sectionTitle}>
                 {g.theme} · {g.items.length}
@@ -146,11 +135,8 @@ export default function HomeScreen() {
             )}
             {g.items.map((s) => (
               <View key={s.set_num} style={[styles.row, s.status === "building" && styles.rowBuilding]}>
-                <TouchableOpacity
-                  style={styles.rowMain}
-                  onPress={() => nav.navigate("SetDetail", { setNum: s.set_num })}
-                >
-                  <RemoteThumb uri={s.img_url} style={styles.thumb} />
+                <TouchableOpacity style={styles.rowMain} onPress={() => nav.navigate("SetDetail", { setNum: s.set_num })}>
+                  <Thumb uri={s.img_url} size={64} />
                   <View style={styles.rowBody}>
                     <Text style={styles.setName} numberOfLines={2}>
                       {s.name}
@@ -175,9 +161,10 @@ export default function HomeScreen() {
               </View>
             ))}
           </View>
-        )}
-        ListFooterComponent={stats && sets.length > 0 ? <StatsFooter stats={stats} nav={nav} /> : null}
-      />
+        ))}
+
+        {stats && sets.length > 0 && <StatsFooter stats={stats} nav={nav} />}
+      </ScrollView>
 
       <Modal visible={menuFor !== null} transparent animationType="slide" onRequestClose={() => setMenuFor(null)}>
         <Pressable style={styles.sheetBackdrop} onPress={() => setMenuFor(null)}>
@@ -260,12 +247,8 @@ function StatsFooter({ stats, nav }: { stats: Stats; nav: Nav }) {
           {stats.closest_to_done.map((s) => {
             const sp = s.req ? Math.round((s.conf / s.req) * 100) : 0;
             return (
-              <TouchableOpacity
-                key={s.set_num}
-                style={styles.closeRow}
-                onPress={() => nav.navigate("SetDetail", { setNum: s.set_num })}
-              >
-                <RemoteThumb uri={s.img_url} style={styles.closeThumb} />
+              <TouchableOpacity key={s.set_num} style={styles.closeRow} onPress={() => nav.navigate("SetDetail", { setNum: s.set_num })}>
+                <Thumb uri={s.img_url} size={32} />
                 <Text style={styles.closeName} numberOfLines={1}>
                   {s.name}
                 </Text>
@@ -297,19 +280,18 @@ function StatusBtn({ label, active, onClick }: { label: string; active: boolean;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
-  content: { padding: 12, gap: 4, paddingBottom: 24 },
+  content: { padding: 12, paddingBottom: 24 },
   chipRow: { gap: 8, paddingVertical: 4, paddingRight: 12 },
   chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, backgroundColor: theme.card },
   chipActive: { backgroundColor: theme.accent },
   chipText: { color: theme.textDim, fontSize: 13, fontWeight: "600" },
   chipTextActive: { color: "#000" },
   empty: { color: theme.textDim, fontSize: 14, textAlign: "center", padding: 24, lineHeight: 20 },
-  section: { marginBottom: 14, gap: 8 },
-  sectionTitle: { color: theme.textFaint, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1, marginTop: 6 },
-  row: { flexDirection: "row", backgroundColor: theme.card, borderRadius: 12, overflow: "hidden" },
+  section: { marginBottom: 14 },
+  sectionTitle: { color: theme.textFaint, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1, marginTop: 6, marginBottom: 8 },
+  row: { flexDirection: "row", backgroundColor: theme.card, borderRadius: 12, overflow: "hidden", marginBottom: 8 },
   rowBuilding: { borderWidth: 2, borderColor: theme.accent },
   rowMain: { flex: 1, flexDirection: "row", gap: 12, padding: 10, alignItems: "center" },
-  thumb: { width: 64, height: 64, borderRadius: 8, backgroundColor: theme.cardAlt },
   rowBody: { flex: 1, gap: 3 },
   setName: { color: theme.text, fontSize: 15, fontWeight: "600" },
   setMeta: { color: theme.textFaint, fontSize: 12 },
@@ -332,7 +314,6 @@ const styles = StyleSheet.create({
   swatch: { width: 12, height: 12, borderRadius: 6 },
   swatchText: { color: theme.text, fontSize: 11 },
   closeRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 5 },
-  closeThumb: { width: 32, height: 32, borderRadius: 6, backgroundColor: theme.cardAlt },
   closeName: { flex: 1, color: theme.text, fontSize: 13 },
   closePct: { color: theme.textFaint, fontSize: 12 },
 

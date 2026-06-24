@@ -146,6 +146,7 @@ export default function SetDetailScreen() {
     <View style={styles.screen}>
       <FlatList
         contentContainerStyle={styles.content}
+        removeClippedSubviews={false}
         data={listData}
         keyExtractor={(it, i) =>
           it.kind === "header" ? `h-${it.color_name}-${i}` : `p-${it.part.part_num}-${it.part.color_id}-${it.part.is_spare}`
