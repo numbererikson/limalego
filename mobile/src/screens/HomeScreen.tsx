@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   empty: { color: theme.textDim, fontSize: 14, textAlign: "center", padding: 24, lineHeight: 20 },
   section: { marginBottom: 14 },
   sectionTitle: { color: theme.textFaint, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1, marginTop: 6, marginBottom: 8 },
-  row: { flexDirection: "row", backgroundColor: theme.card, borderRadius: 12, overflow: "hidden", marginBottom: 8 },
+  row: { flexDirection: "row", backgroundColor: theme.card, borderRadius: 12, marginBottom: 8 },
   rowBuilding: { borderWidth: 2, borderColor: theme.accent },
   rowMain: { flex: 1, flexDirection: "row", gap: 12, padding: 10, alignItems: "center" },
   rowBody: { flex: 1, gap: 3 },
