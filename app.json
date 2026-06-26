@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Limalego",
+    "slug": "limalego",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "limalego",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.limalego.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Limalego uses the camera to recognise LEGO parts."
+      }
+    },
+    "android": {
+      "package": "com.limalego.app",
+      "permissions": [
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Limalego uses the camera to recognise LEGO parts."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3da18395-ae33-4c9d-bc10-38ab28f94e2b"
+      }
+    }
+  }
+}

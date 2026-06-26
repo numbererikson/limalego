@@ -1,139 +1,94 @@
 # Limalego
 
-A self-hosted web app that helps you find which LEGO® parts from your scattered
-brick pile belong to a specific set you want to build. You point your phone's
-camera at a brick, the app tells you which of your tracked sets need it and in
-which color — so you can pick the right ones out of a 10 000-piece pile without
-losing your sanity.
+A standalone **mobile app** that helps you find which LEGO® parts from your
+scattered brick pile belong to a specific set you want to build. You point your
+phone's camera at a brick, the app tells you which of your tracked sets need it
+and in which color — so you can pick the right ones out of a 10 000-piece pile
+without losing your sanity.
 
-Built for personal use with a Rebrickable database snapshot and the public
-Brickognize part-recognition API.
+Everything runs on the phone. No home server: the sets you track live in a
+local database on the device, and each set's parts list is pulled live from the
+[Rebrickable](https://rebrickable.com/) API when you add it. Part recognition
+uses the public [Brickognize](https://brickognize.com/) API.
 
-> **Status:** working MVP. Used daily by its author; PRs and forks welcome.
+**Privacy:** no accounts, no analytics, no backend of ours. Your tracked sets
+and progress never leave your device. You bring your own free Rebrickable API
+key (stored in the device's secure storage); the app only talks to Rebrickable
+and Brickognize directly to fetch part data and recognise photos.
+
+> Built with Expo / React Native. The earlier self-hosted web version
+> (FastAPI + React) lived under `backend/` and `frontend/` and remains in the
+> git history.
 
 ## What it does
 
-- **My sets** — track which LEGO sets you own / want to build, see thumbnails,
-  filter by theme, see overall progress.
+- **My sets** — track which LEGO sets you own / want to build, grouped by
+  theme, with status (tracking / building / done) and overall progress.
 - **Per-set inventory** — every part the set needs, grouped and filtered by
-  color, with real-product photos from Rebrickable. Tap `+/−` to mark how many
-  you've already collected.
+  color, with real-product photos. Tap `+/−` to mark how many you've collected.
+  Grab a box of red bricks, filter to red, see exactly what's still missing.
 - **Camera scan** — point your phone at a brick; the app calls Brickognize,
   cross-references the result against *every* set you're tracking, and tells
-  you "yes, you need 5 of these in red for the Digger and 3 in blue for
-  Shopping Street" (or "no, this brick fits nowhere you're collecting").
+  you where it's needed and in which color (or that it fits nowhere).
 - **Stats** — total parts across all your sets, most-needed colors, the sets
   closest to completion.
-- **Daily JSON backup** of your progress (systemd timer).
-
-## Screenshots
-
-_Add a few screenshots here once you take them on your device._
 
 ## Tech stack
 
-- **Backend** — Python 3.12, FastAPI, SQLite. ~1.4M inventory rows fit happily.
-- **Frontend** — Vite + React 19 + TypeScript 6 + Tailwind 4. iPhone-first
-  layout, dark, foto-first camera UI.
-- **Recognition** — public [Brickognize](https://brickognize.com/) API (no key,
-  rate-limited per IP).
-- **Data** — [Rebrickable](https://rebrickable.com/) CSV dumps, downloaded on
-  first run.
+- **Expo / React Native** (TypeScript) — iPhone & Android.
+- **expo-sqlite** — on-device database of your tracked sets (a few MB, not the
+  full ~130 MB Rebrickable catalog).
+- **expo-secure-store** — your Rebrickable API key, entered in-app.
+- **expo-camera / expo-image-picker** — the scan camera.
+- **Rebrickable API** + **Brickognize API** — called directly from the device.
 
-Everything runs on a single Linux box on your local LAN. Tested with Safari on
-iOS and Chrome/Edge on desktop.
+## Prerequisites
 
-## Quick start
+- Node 20+ on your computer.
+- A **free Rebrickable API key** — create an account at
+  <https://rebrickable.com/>, then Profile → Settings → API → generate. Enter
+  it in the app's **Settings** tab on first run.
+- The **Expo Go** app on your phone (for development), or an
+  [Expo account](https://expo.dev/) for cloud builds.
 
-Prereqs: Linux box on the LAN, Python 3.10+, Node 20+, `sqlite3` cli.
+## Run it (development)
 
 ```bash
-git clone https://github.com/numbererikson/limalego.git
-cd limalego
-
-# 1) Backend — download data, init DB, install deps
-python3 -m venv .venv
-.venv/bin/pip install -r backend/requirements.txt
-.venv/bin/python backend/scripts/download_rebrickable.py   # ~15 MB
-.venv/bin/python backend/scripts/init_db.py
-.venv/bin/python backend/scripts/import_csv.py             # ~30 s, ~130 MB DB
-.venv/bin/python backend/scripts/migrate_add_elements.py   # element photos
-
-# 2) Frontend
-cd frontend
 npm install
-cd ..
-
-# 3) Run both in dev mode
-.venv/bin/uvicorn --app-dir backend app.main:app --host 0.0.0.0 --port 8000 &
-( cd frontend && npm run dev -- --host 0.0.0.0 ) &
+npx expo start
 ```
 
-Open `https://<your-server-ip>:5173/` on your phone. Self-signed cert — accept
-the browser warning. iOS Safari and the camera both require HTTPS, which Vite's
-`@vitejs/plugin-basic-ssl` provides automatically.
+Scan the QR code with Expo Go (Android) or the Camera app (iOS). On first
+launch, open **Settings** and paste your Rebrickable API key, then add a set
+from the **Find** tab.
 
-### Install as systemd services (optional, recommended)
+## Build a standalone app (no Mac needed)
+
+[EAS Build](https://docs.expo.dev/build/introduction/) compiles the app in
+Expo's cloud — no Xcode or Android Studio required locally:
 
 ```bash
-bash backend/systemd/install.sh
-sudo systemctl enable --now limalego-backend.service
-sudo systemctl enable --now limalego-frontend.service
-sudo systemctl enable --now limalego-backup.timer
+npm install -g eas-cli
+eas login
+eas build -p android        # installable .apk/.aab
+eas build -p ios            # iOS (needs an Apple Developer account to install)
 ```
 
-### Firewall
-
-If you run UFW or similar, allow your LAN range on the two ports:
-
-```bash
-sudo ufw allow from 192.168.0.0/16 to any port 5173 proto tcp
-sudo ufw allow from 192.168.0.0/16 to any port 8000 proto tcp
-```
-
-### Updating the Rebrickable data
-
-```bash
-.venv/bin/python backend/scripts/download_rebrickable.py --force
-.venv/bin/python backend/scripts/import_csv.py
-.venv/bin/python backend/scripts/migrate_add_elements.py
-```
-
-Your tracked-set statuses and `confirmed_qty` are preserved across re-imports.
-
-## Architecture
+## Project layout
 
 ```
-limalego/
-├── backend/
-│   ├── app/                 FastAPI app
-│   │   ├── main.py
-│   │   ├── database.py
-│   │   ├── schema.sql       8 tables
-│   │   ├── routes/          sets, inventory, scan, stats
-│   │   └── services/        brickognize wrapper
-│   ├── scripts/             download, init, import, backup, restore
-│   └── systemd/             unit templates
-├── frontend/                Vite + React app
-├── data/                    Rebrickable CSV dumps (gitignored)
-└── backups/                 daily JSON snapshots (gitignored)
+limalego/                    Expo / React Native app (project root)
+├── App.tsx                  navigation (tabs + set-detail stack)
+├── app.json                 Expo config
+├── eas.json                 EAS build profiles
+└── src/
+    ├── api/                 rebrickable.ts, brickognize.ts  (network clients)
+    ├── db/                  schema.ts, database.ts          (expo-sqlite)
+    ├── store/               settings.ts                     (secure-store: API key)
+    ├── data/                sets / inventory / scan / stats  (app logic)
+    ├── components/          PartThumb.tsx
+    └── screens/             Home, SetSearch, SetDetail, Scan, Settings
 ```
-
-The SQLite DB holds Rebrickable master data **and** user state (tracked sets,
-confirmed quantities, scan history). To reset everything, delete
-`backend/db/lego.db` and re-run `init_db.py` + `import_csv.py`.
-
-## Limitations
-
-- **Brickognize identifies one dominant part per image.** No multi-object
-  detection. For a tabletop full of bricks you'd need to crop client-side; not
-  implemented. The single-piece flow is fine for "I'm holding this brick — does
-  it belong to one of my sets?" which is the actual workflow.
-- **No color detection.** Brickognize returns the shape; the app asks you to
-  tap the color you actually see. (Almost everyone sorts bricks by color
-  anyway.)
-- **Single-user.** No accounts; the database is yours. Run a separate instance
-  per person.
 
 ## Credits
 

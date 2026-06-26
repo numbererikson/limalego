@@ -1,12 +1,6 @@
 # Default to LF on checkout for cross-platform consistency
 * text=auto eol=lf
 
-# Force LF for shell scripts and systemd units (they're consumed on Linux)
-*.sh        text eol=lf
-*.service   text eol=lf
-*.timer     text eol=lf
-*.template  text eol=lf
-
 # Binary-ish files: never touch
 *.png  binary
 *.jpg  binary
@@ -14,4 +8,3 @@
 *.webp binary
 *.gif  binary
 *.ico  binary
-*.db   binary
