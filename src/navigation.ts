@@ -10,4 +10,5 @@ export type TabsParamList = {
 export type RootStackParamList = {
   Tabs: NavigatorScreenParams<TabsParamList> | undefined;
   SetDetail: { setNum: string };
+  ScanSet: { setNum: string };
 };

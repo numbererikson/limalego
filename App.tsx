@@ -64,6 +64,7 @@ export default function App() {
       >
         <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
         <Stack.Screen name="SetDetail" component={SetDetailScreen} options={{ title: "Set" }} />
+        <Stack.Screen name="ScanSet" component={ScanScreen} options={{ title: "Scan bricks" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
