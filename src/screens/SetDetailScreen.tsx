@@ -256,7 +256,7 @@ export default function SetDetailScreen() {
       <View style={styles.scanBar}>
         <TouchableOpacity
           style={styles.scanBtn}
-          onPress={() => nav.navigate("Tabs", { screen: "Scan", params: { setNum } })}
+          onPress={() => nav.navigate("ScanSet", { setNum })}
         >
           <Text style={styles.scanBtnText}>📷 Scan bricks</Text>
         </TouchableOpacity>
