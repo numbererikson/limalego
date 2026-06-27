@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Linking,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
 } from "react-native";
 
 import { getSet } from "@/api/rebrickable";
+import { exportAndShare, pickAndRestore } from "@/data/backup";
 import { getRebrickableKey, setRebrickableKey } from "@/store/settings";
 import { theme } from "@/theme";
 
@@ -22,6 +24,11 @@ export default function SettingsScreen() {
     msg: "",
   });
   const [busy, setBusy] = useState(false);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [backupMsg, setBackupMsg] = useState<{ kind: "idle" | "ok" | "err"; msg: string }>({
+    kind: "idle",
+    msg: "",
+  });
 
   useEffect(() => {
     getRebrickableKey().then((k) => {
@@ -43,6 +50,48 @@ export default function SettingsScreen() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function doExport() {
+    setBackupBusy(true);
+    setBackupMsg({ kind: "idle", msg: "" });
+    try {
+      await exportAndShare();
+      setBackupMsg({ kind: "ok", msg: "Backup created — choose where to send it." });
+    } catch (e) {
+      setBackupMsg({ kind: "err", msg: e instanceof Error ? e.message : "Export failed." });
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  function doImport() {
+    Alert.alert(
+      "Restore backup?",
+      "This merges the backup into your current data, overwriting matching sets and progress.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Choose file",
+          onPress: async () => {
+            setBackupBusy(true);
+            setBackupMsg({ kind: "idle", msg: "" });
+            try {
+              const res = await pickAndRestore();
+              setBackupMsg(
+                res
+                  ? { kind: "ok", msg: `Restored ${res.sets} sets. Reopen tabs to see them.` }
+                  : { kind: "idle", msg: "" },
+              );
+            } catch (e) {
+              setBackupMsg({ kind: "err", msg: e instanceof Error ? e.message : "Import failed." });
+            } finally {
+              setBackupBusy(false);
+            }
+          },
+        },
+      ],
+    );
   }
 
   if (!loaded) {
@@ -92,6 +141,37 @@ export default function SettingsScreen() {
           {status.msg}
         </Text>
       )}
+
+      <View style={styles.divider} />
+
+      <Text style={styles.h1}>Backup</Text>
+      <Text style={styles.body}>
+        Your sets and progress live only on this phone. Export a backup file and
+        keep it somewhere safe (email it to yourself, Google Drive, Files…). You
+        can restore it here on this or a new device.
+      </Text>
+
+      <TouchableOpacity
+        style={[styles.btn, backupBusy && styles.btnDisabled]}
+        onPress={doExport}
+        disabled={backupBusy}
+      >
+        {backupBusy ? <ActivityIndicator color="#000" /> : <Text style={styles.btnText}>Export backup</Text>}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.btnOutline, backupBusy && styles.btnDisabled]}
+        onPress={doImport}
+        disabled={backupBusy}
+      >
+        <Text style={styles.btnOutlineText}>Import backup</Text>
+      </TouchableOpacity>
+
+      {backupMsg.kind !== "idle" && (
+        <Text style={[styles.status, backupMsg.kind === "ok" ? styles.ok : styles.err]}>
+          {backupMsg.msg}
+        </Text>
+      )}
     </ScrollView>
   );
 }
@@ -120,6 +200,16 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: "#000", fontSize: 16, fontWeight: "700" },
+  btnOutline: {
+    backgroundColor: theme.card,
+    borderColor: theme.border,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 14,
+    alignItems: "center",
+  },
+  btnOutlineText: { color: theme.text, fontSize: 16, fontWeight: "600" },
+  divider: { height: 1, backgroundColor: theme.border, marginVertical: 8 },
   status: { fontSize: 14, fontWeight: "600" },
   ok: { color: theme.good },
   err: { color: theme.bad },
