@@ -135,9 +135,19 @@ export default function ScanScreen() {
 
           {det.needed_in_sets.map((s) => (
             <View key={s.set_num} style={styles.setBlock}>
-              <Text style={styles.setBlockName}>
-                {s.set_name} · {s.total_missing} missing
-              </Text>
+              <View style={styles.setBlockHead}>
+                {s.set_img_url ? (
+                  <Image source={{ uri: s.set_img_url }} style={styles.setBlockThumb} resizeMode="contain" />
+                ) : (
+                  <View style={styles.setBlockThumb} />
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.setBlockName}>{s.set_name}</Text>
+                  <Text style={styles.setBlockMeta}>
+                    {s.set_num} · {s.total_missing} missing
+                  </Text>
+                </View>
+              </View>
               {s.colors.map((c) => {
                 const tag = `${det.detection_id}-${s.set_num}-${c.color_id}`;
                 const done = taken.has(tag);
@@ -192,10 +202,13 @@ const styles = StyleSheet.create({
   badge: { fontSize: 12, fontWeight: "700", marginTop: 4, alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5, overflow: "hidden" },
   badgeGood: { color: "#000", backgroundColor: theme.good },
   badgeBad: { color: theme.text, backgroundColor: theme.cardAlt },
-  setBlock: { borderTopColor: theme.border, borderTopWidth: 1, paddingTop: 8, gap: 6 },
-  setBlockName: { color: theme.text, fontSize: 13, fontWeight: "600" },
+  setBlock: { backgroundColor: theme.cardAlt, borderRadius: 10, padding: 10, gap: 8 },
+  setBlockHead: { flexDirection: "row", gap: 10, alignItems: "center" },
+  setBlockThumb: { width: 36, height: 36, borderRadius: 6, backgroundColor: theme.card },
+  setBlockName: { color: theme.accent, fontSize: 14, fontWeight: "700" },
+  setBlockMeta: { color: theme.textDim, fontSize: 12, marginTop: 1 },
   colorRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  colorChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5 },
+  colorChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5, borderWidth: 1, borderColor: "rgba(255,255,255,0.25)" },
   colorChipText: { fontSize: 11, fontWeight: "600" },
   colorQty: { color: theme.textDim, fontSize: 12, flex: 1 },
   tookBtn: { backgroundColor: theme.accent, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
